@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Yolcu Taksi Yönetim</title>
+  <style>
+    :root { --bg:#0b0b0c; --card:#1b1b1e; --line:#2a2a2f; --text:#f4f4f5; --muted:#a1a1aa; --yellow:#ffc81e; color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--text); font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+    .wrap { max-width:760px; margin:0 auto; padding:24px 16px 120px; }
+    h1 { font-size:1.6rem; margin:0 0 4px; }
+    h2 { font-size:1.1rem; margin:32px 0 12px; color:var(--yellow); }
+    .lead { color:var(--muted); margin:0 0 16px; }
+    label { display:block; font-size:.85rem; color:var(--muted); margin:12px 0 4px; }
+    input, textarea { width:100%; padding:12px; border-radius:10px; border:1px solid var(--line); background:var(--card); color:var(--text); font:inherit; }
+    textarea { min-height:70px; resize:vertical; }
+    input:focus, textarea:focus { outline:2px solid var(--yellow); border-color:transparent; }
+    .grid2 { display:grid; gap:0 12px; }
+    @media (min-width:600px){ .grid2 { grid-template-columns:1fr 1fr; } }
+    .item { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:4px 14px 14px; margin-bottom:10px; position:relative; }
+    .item input, .item textarea { background:var(--bg); }
+    .del { position:absolute; top:8px; right:8px; background:none; border:0; color:var(--muted); font-size:1.3rem; cursor:pointer; }
+    .del:hover { color:#f87171; }
+    .add, .save { border:0; border-radius:10px; padding:12px 18px; font:inherit; font-weight:700; cursor:pointer; }
+    .add { background:var(--card); color:var(--text); border:1px dashed var(--line); width:100%; }
+    .bar { position:fixed; left:0; right:0; bottom:0; background:rgba(11,11,12,.96); border-top:1px solid var(--line); padding:12px 16px; }
+    .bar .inner { max-width:760px; margin:0 auto; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .save { background:var(--yellow); color:#111; }
+    .hint { color:var(--muted); font-size:.85rem; flex:1 1 220px; }
+    .note { background:#2a2205; border:1px solid #5c4a0a; border-radius:10px; padding:12px 14px; font-size:.92rem; }
+    code { background:var(--card); padding:1px 6px; border-radius:6px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Yolcu Taksi · Yönetim</h1>
+    <p class="lead">Bilgileri güncelleyin, <strong>config.js indir</strong> butonuna basın ve indirilen dosyayı sunucudaki <code>assets/js/config.js</code> dosyasının yerine yükleyin.</p>
+    <p class="note">Bu sayfa sunucuya bir şey kaydetmez; yalnızca yeni yapılandırma dosyası üretir. Yayında bu klasörü şifreyle koruyun (README'deki <code>.htaccess</code> örneğine bakın) veya sunucuya hiç yüklemeyin.</p>
+
+    <form id="f" autocomplete="off">
+      <h2>Genel</h2>
+      <div class="grid2">
+        <div><label for="brand">Marka adı</label><input id="brand" data-k="brand"></div>
+        <div><label for="hours">Çalışma saatleri</label><input id="hours" data-k="hours"></div>
+      </div>
+      <label for="heroTitle">Ana başlık</label><input id="heroTitle" data-k="heroTitle">
+      <label for="heroSubtitle">Alt başlık</label><textarea id="heroSubtitle" data-k="heroSubtitle"></textarea>
+
+      <h2>İletişim</h2>
+      <div class="grid2">
+        <div><label for="phone">Telefon (arama için, +90 ile boşluksuz)</label><input id="phone" data-k="phone" inputmode="tel" placeholder="+905321234567"></div>
+        <div><label for="phoneLabel">Telefon (ekranda görünen)</label><input id="phoneLabel" data-k="phoneLabel" placeholder="0532 123 45 67"></div>
+        <div><label for="phone2">2. Telefon (isteğe bağlı)</label><input id="phone2" data-k="phone2" inputmode="tel"></div>
+        <div><label for="phone2Label">2. Telefon (ekranda görünen)</label><input id="phone2Label" data-k="phone2Label"></div>
+        <div><label for="whatsapp">WhatsApp numarası (+ olmadan)</label><input id="whatsapp" data-k="whatsapp" inputmode="numeric" placeholder="905321234567"></div>
+        <div><label for="whatsappMessage">WhatsApp varsayılan mesaj</label><input id="whatsappMessage" data-k="whatsappMessage"></div>
+      </div>
+      <label for="address">Adres</label><input id="address" data-k="address">
+      <label for="mapsUrl">Google Haritalar bağlantısı</label><input id="mapsUrl" data-k="mapsUrl" type="url">
+
+      <h2>Hizmet Bölgeleri &amp; Rotalar</h2>
+      <div data-list="routes"></div>
+      <button type="button" class="add" data-add="routes">+ Rota ekle</button>
+
+      <h2>Araçlar</h2>
+      <div data-list="vehicles"></div>
+      <button type="button" class="add" data-add="vehicles">+ Araç ekle</button>
+
+      <h2>Müşteri Yorumları</h2>
+      <p class="lead">Yorumları müşteriler sitede kendileri yazar. Onaylamak, gizlemek ve yanıt vermek için <a href="yorumlar.html" style="color:var(--yellow)">Yorum Yönetimi</a> sayfasını kullanın.</p>
+    </form>
+  </div>
+
+  <div class="bar"><div class="inner">
+    <span class="hint" id="hint">Değişiklikler bu tarayıcıda taslak olarak tutulur.</span>
+    <button type="button" class="add" id="reset" style="width:auto">Taslağı sıfırla</button>
+    <button type="button" class="save" id="dl">config.js indir</button>
+  </div></div>
+
+  <script src="../assets/js/config.js"></script>
+  <script>
+  (function () {
+    "use strict";
+    var DRAFT = "yolcuTaksiDraft";
+    var schema = {
+      routes:   [["tag", "Etiket"], ["title", "Başlık"], ["desc", "Açıklama", true]],
+      vehicles: [["name", "Araç"], ["detail", "Özellikler"]]
+    };
+    var data;
+    try { data = JSON.parse(localStorage.getItem(DRAFT)); } catch (e) {}
+    if (!data) data = JSON.parse(JSON.stringify(window.SITE_CONFIG || {}));
+    Object.keys(schema).forEach(function (k) { if (!Array.isArray(data[k])) data[k] = []; });
+    delete data.reviews; // yorumlar artık api/reviews.php üzerinden yönetiliyor
+
+    var form = document.getElementById("f");
+
+    form.querySelectorAll("[data-k]").forEach(function (el) {
+      el.value = data[el.dataset.k] || "";
+      el.addEventListener("input", function () { data[el.dataset.k] = el.value.trim(); saveDraft(); });
+    });
+
+    function renderList(key) {
+      var box = form.querySelector('[data-list="' + key + '"]');
+      box.innerHTML = "";
+      data[key].forEach(function (row, i) {
+        var item = document.createElement("div");
+        item.className = "item";
+        var del = document.createElement("button");
+        del.type = "button"; del.className = "del"; del.textContent = "×";
+        del.setAttribute("aria-label", "Sil");
+        del.onclick = function () { data[key].splice(i, 1); saveDraft(); renderList(key); };
+        item.appendChild(del);
+        schema[key].forEach(function (f) {
+          var id = key + i + f[0];
+          var lab = document.createElement("label");
+          lab.htmlFor = id; lab.textContent = f[1];
+          var inp = document.createElement(f[2] ? "textarea" : "input");
+          inp.id = id; inp.value = row[f[0]] == null ? "" : row[f[0]];
+          if (f[0] === "stars") { inp.type = "number"; inp.min = 1; inp.max = 5; }
+          inp.addEventListener("input", function () {
+            row[f[0]] = f[0] === "stars" ? Number(inp.value) || 5 : inp.value;
+            saveDraft();
+          });
+          item.appendChild(lab); item.appendChild(inp);
+        });
+        box.appendChild(item);
+      });
+    }
+    Object.keys(schema).forEach(renderList);
+
+    form.querySelectorAll("[data-add]").forEach(function (b) {
+      b.onclick = function () {
+        var k = b.dataset.add, row = {};
+        schema[k].forEach(function (f) { row[f[0]] = f[0] === "stars" ? 5 : ""; });
+        data[k].push(row); saveDraft(); renderList(k);
+      };
+    });
+
+    function saveDraft() {
+      try { localStorage.setItem(DRAFT, JSON.stringify(data)); } catch (e) {}
+    }
+
+    document.getElementById("reset").onclick = function () {
+      if (!confirm("Taslak silinsin ve sunucudaki mevcut ayarlar yeniden yüklensin mi?")) return;
+      try { localStorage.removeItem(DRAFT); } catch (e) {}
+      location.reload();
+    };
+
+    document.getElementById("dl").onclick = function () {
+      var hint = document.getElementById("hint");
+      if (!/^\+\d{10,15}$/.test(data.phone || "")) { hint.textContent = "Telefon +90 ile başlamalı ve boşluk içermemeli (örn. +905321234567)."; return; }
+      if (!/^\d{10,15}$/.test(data.whatsapp || "")) { hint.textContent = "WhatsApp numarası yalnızca rakam olmalı (örn. 905321234567)."; return; }
+      var js = "/*\n * Yolcu Taksi — Site Yapılandırması\n * Yönetim panelinden üretildi: " + new Date().toLocaleString("tr-TR") +
+        "\n * Bu dosyayı assets/js/config.js olarak yükleyin.\n */\nwindow.SITE_CONFIG = " + JSON.stringify(data, null, 2) + ";\n";
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([js], { type: "text/javascript" }));
+      a.download = "config.js";
+      a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+      hint.textContent = "config.js indirildi. Sunucuda assets/js/ klasörüne yükleyin.";
+    };
+  })();
+  </script>
+</body>
+</html>

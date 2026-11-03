@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Yorum Yönetimi</title>
+  <style>
+    :root { --bg:#0b0b0c; --card:#1b1b1e; --line:#2a2a2f; --text:#f4f4f5; --muted:#a1a1aa; --yellow:#ffc81e; --green:#25d366; --red:#f87171; color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--text); font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+    .wrap { max-width:760px; margin:0 auto; padding:24px 16px 60px; }
+    h1 { font-size:1.6rem; margin:0 0 4px; }
+    a { color:var(--yellow); }
+    .top { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+    input, textarea { width:100%; padding:12px; border-radius:10px; border:1px solid var(--line); background:var(--bg); color:var(--text); font:inherit; }
+    textarea { min-height:70px; resize:vertical; }
+    input:focus, textarea:focus { outline:2px solid var(--yellow); border-color:transparent; }
+    button { border:0; border-radius:10px; padding:10px 14px; font:inherit; font-weight:700; cursor:pointer; background:var(--card); color:var(--text); border:1px solid var(--line); }
+    button.primary { background:var(--yellow); color:#111; border-color:var(--yellow); }
+    button.ok { background:var(--green); color:#062b14; border-color:var(--green); }
+    button.danger { color:var(--red); }
+    .login { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px; max-width:380px; }
+    .login button { width:100%; margin-top:12px; }
+    .tabs { display:flex; gap:8px; margin:8px 0 16px; flex-wrap:wrap; }
+    .tabs button[aria-pressed="true"] { border-color:var(--yellow); color:var(--yellow); }
+    .rv { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:12px; }
+    .rv.pending { border-left:4px solid var(--yellow); }
+    .rv__head { display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; color:var(--muted); font-size:.9rem; }
+    .rv__stars { color:var(--yellow); letter-spacing:2px; }
+    .rv__text { margin:8px 0 12px; white-space:pre-wrap; }
+    .rv__actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+    .badge { font-size:.75rem; font-weight:700; padding:2px 8px; border-radius:999px; background:#2a2205; color:var(--yellow); }
+    .badge.on { background:#0b2a17; color:var(--green); }
+    .msg { color:var(--muted); min-height:1.4em; }
+    .msg.err { color:var(--red); }
+    .empty { color:var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <h1>Yorum Yönetimi</h1>
+        <a href="./">← Site ayarları</a>
+      </div>
+      <button id="logout" hidden>Çıkış</button>
+    </div>
+
+    <form class="login" id="login">
+      <label for="pw">Yönetici şifresi</label>
+      <input id="pw" type="password" autocomplete="current-password" required>
+      <button class="primary" type="submit">Giriş yap</button>
+      <p class="msg" id="loginMsg"></p>
+    </form>
+
+    <div id="panel" hidden>
+      <div class="tabs" role="group" aria-label="Filtre">
+        <button data-f="pending" aria-pressed="true">Onay bekleyen (<span id="cPending">0</span>)</button>
+        <button data-f="approved" aria-pressed="false">Yayında (<span id="cApproved">0</span>)</button>
+      </div>
+      <p class="msg" id="msg"></p>
+      <div id="list"></div>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    "use strict";
+    var API = "../api/reviews.php";
+    var csrf = "";
+    try { csrf = sessionStorage.getItem("atCsrf") || ""; } catch (e) {}
+    var filter = "pending", all = [];
+    var $ = function (id) { return document.getElementById(id); };
+
+    function esc(s) {
+      return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+        return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+      });
+    }
+    function call(body) {
+      return fetch(API, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json", "X-CSRF": csrf },
+        body: JSON.stringify(body)
+      }).then(function (r) {
+        return r.json().catch(function () { return { ok: false, error: "Sunucu yanıtı okunamadı (PHP çalışıyor mu?)." }; });
+      });
+    }
+    function say(text, err) { $("msg").textContent = text || ""; $("msg").className = "msg" + (err ? " err" : ""); }
+
+    function showPanel(on) {
+      $("login").hidden = on; $("panel").hidden = !on; $("logout").hidden = !on;
+    }
+
+    function load() {
+      return call({ action: "list" }).then(function (d) {
+        if (!d.ok) { showPanel(false); if (d.error && csrf) $("loginMsg").textContent = d.error; return; }
+        showPanel(true);
+        all = d.reviews;
+        render();
+      });
+    }
+
+    function render() {
+      var counts = { pending: 0, approved: 0 };
+      all.forEach(function (r) { counts[r.status]++; });
+      $("cPending").textContent = counts.pending;
+      $("cApproved").textContent = counts.approved;
+      var rows = all.filter(function (r) { return r.status === filter; });
+      if (!rows.length) {
+        $("list").innerHTML = '<p class="empty">' + (filter === "pending" ? "Onay bekleyen yorum yok." : "Henüz yayında yorum yok.") + "</p>";
+        return;
+      }
+      $("list").innerHTML = rows.map(function (r) {
+        var d = new Date(r.created).toLocaleString("tr-TR", { dateStyle: "medium", timeStyle: "short" });
+        return '<div class="rv ' + r.status + '" data-id="' + esc(r.id) + '">' +
+          '<div class="rv__head"><span><strong style="color:var(--text)">' + esc(r.name) + '</strong> · <span class="rv__stars">' +
+          "★★★★★".slice(0, r.stars) + "</span></span><span>" + esc(d) + ' <span class="badge' + (r.status === "approved" ? " on" : "") + '">' +
+          (r.status === "approved" ? "Yayında" : "Onay bekliyor") + "</span></span></div>" +
+          '<p class="rv__text">' + esc(r.text) + "</p>" +
+          '<label style="font-size:.85rem;color:var(--muted)">İşletme yanıtı (sitede yorumun altında görünür)</label>' +
+          '<textarea data-reply maxlength="600">' + esc(r.reply) + "</textarea>" +
+          '<div class="rv__actions">' +
+          (r.status === "approved" ? '<button data-a="hide">Yayından kaldır</button>' : '<button class="ok" data-a="approve">Onayla &amp; yayınla</button>') +
+          '<button data-a="reply">Yanıtı kaydet</button>' +
+          '<button class="danger" data-a="delete">Sil</button></div></div>';
+      }).join("");
+    }
+
+    $("list").addEventListener("click", function (e) {
+      var b = e.target.closest("button[data-a]");
+      if (!b) return;
+      var card = b.closest(".rv"), a = b.dataset.a;
+      if (a === "delete" && !confirm("Bu yorum kalıcı olarak silinsin mi?")) return;
+      b.disabled = true;
+      call({ action: a, id: card.dataset.id, reply: card.querySelector("[data-reply]").value })
+        .then(function (d) {
+          if (!d.ok) { say(d.error, true); b.disabled = false; return; }
+          say({ approve: "Yorum yayınlandı.", hide: "Yorum yayından kaldırıldı.", delete: "Yorum silindi.", reply: "Yanıt kaydedildi." }[a]);
+          return load();
+        });
+    });
+
+    document.querySelectorAll("[data-f]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        filter = b.dataset.f;
+        document.querySelectorAll("[data-f]").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+        say(""); render();
+      });
+    });
+
+    $("login").addEventListener("submit", function (e) {
+      e.preventDefault();
+      $("loginMsg").textContent = "Kontrol ediliyor…";
+      call({ action: "login", password: $("pw").value }).then(function (d) {
+        if (!d.ok) { $("loginMsg").textContent = d.error; return; }
+        csrf = d.csrf;
+        try { sessionStorage.setItem("atCsrf", csrf); } catch (e) {}
+        $("pw").value = ""; $("loginMsg").textContent = "";
+        load();
+      });
+    });
+
+    $("logout").addEventListener("click", function () {
+      call({ action: "logout" }).then(function () {
+        csrf = "";
+        try { sessionStorage.removeItem("atCsrf"); } catch (e) {}
+        showPanel(false);
+      });
+    });
+
+    if (csrf) load();
+  })();
+  </script>
+</body>
+</html>
