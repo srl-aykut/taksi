@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ardahan Taksi - Gelişmiş Yönetici Paneli</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    .tab-btn.active { background-color: #f59e0b; color: #0f172a; font-weight: 800; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+
+  <!-- Giriş Ekranı -->
+  <div id="authSection" class="min-h-screen flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-8 shadow-2xl text-center">
+      <div class="w-16 h-16 bg-amber-500/10 text-amber-500 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4 border border-amber-500/20">
+        <i class="fa-solid fa-gauge-high"></i>
+      </div>
+      <h1 class="text-2xl font-black text-white">Yönetici Girişi</h1>
+      <p class="text-xs text-slate-400 mt-1 mb-6">Tüm Siteyi Kontrol Edin ve Düzenleyin</p>
+      
+      <div class="space-y-4">
+        <div class="text-left">
+          <label class="block text-xs uppercase font-bold text-slate-400 mb-1">Giriş Şifresi</label>
+          <input type="password" id="passInput" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-amber-400" placeholder="Şifrenizi girin">
+        </div>
+        <button onclick="login()" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-3.5 rounded-xl transition shadow-lg shadow-amber-500/20">
+          Panele Giriş Yap
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ana Panel -->
+  <div id="panelSection" class="hidden">
+    <!-- Header -->
+    <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-50 px-6 py-4">
+      <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center text-slate-950 font-black text-xl">
+            <i class="fa-solid fa-taxi"></i>
+          </div>
+          <div>
+            <h1 class="font-black text-lg text-white">Ardahan Taksi <span class="text-amber-500">Kontrol Paneli</span></h1>
+            <p class="text-xs text-slate-400">Canlı Site Yönetimi</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button onclick="saveAll()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-6 py-2.5 rounded-xl text-sm transition shadow-lg shadow-emerald-500/20 flex items-center gap-2">
+            <i class="fa-solid fa-floppy-disk"></i> Değişiklikleri Kaydet
+          </button>
+          <a href="index.html" target="_blank" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold px-4 py-2.5 rounded-xl text-sm transition border border-slate-700 flex items-center gap-2">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> Siteyi Gör
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Bildirim Rozeti -->
+    <div id="saveToast" class="fixed top-20 right-6 z-50 hidden bg-emerald-500 text-slate-950 font-bold px-6 py-3 rounded-xl shadow-2xl flex items-center gap-2">
+      <i class="fa-solid fa-circle-check text-lg"></i> Tüm değişiklikler anında kaydedildi ve yayına alındı!
+    </div>
+
+    <!-- Panel Gövdesi -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      <div class="grid lg:grid-cols-12 gap-8">
+        
+        <!-- Sol Menü Sekmeler -->
+        <div class="lg:col-span-3 space-y-2">
+          <button onclick="switchTab('genel')" class="tab-btn active w-full text-left px-4 py-3 rounded-xl text-sm transition flex items-center gap-3 bg-slate-900 border border-slate-800 hover:bg-slate-850">
+            <i class="fa-solid fa-sliders text-amber-500 w-5"></i> <span>Genel & İletişim</span>
+          </button>
+          <button onclick="switchTab('hero')" class="tab-btn w-full text-left px-4 py-3 rounded-xl text-sm transition flex items-center gap-3 bg-slate-900 border border-slate-800 hover:bg-slate-850">
+            <i class="fa-solid fa-bullhorn text-amber-500 w-5"></i> <span>Giriş / Karşılama (Hero)</span>
+          </button>
+          <button onclick="switchTab('hizmetler')" class="tab-btn w-full text-left px-4 py-3 rounded-xl text-sm transition flex items-center gap-3 bg-slate-900 border border-slate-800 hover:bg-slate-850">
+            <i class="fa-solid fa-car-side text-amber-500 w-5"></i> <span>Hizmet Kartları</span>
+          </button>
+          <button onclick="switchTab('rotalar')" class="tab-btn w-full text-left px-4 py-3 rounded-xl text-sm transition flex items-center gap-3 bg-slate-900 border border-slate-800 hover:bg-slate-850">
+            <i class="fa-solid fa-route text-amber-500 w-5"></i> <span>Güzergah & Mesafeler</span>
+          </button>
+          <button onclick="switchTab('neden')" class="tab-btn w-full text-left px-4 py-3 rounded-xl text-sm transition flex items-center gap-3 bg-slate-900 border border-slate-800 hover:bg-slate-850">
+            <i class="fa-solid fa-shield-halved text-amber-500 w-5"></i> <span>Neden Biz? Maddeleri</span>
+          </button>
+          <button onclick="switchTab('yorumlar')" class="tab-btn w-full text-left px-4 py-3 rounded-xl text-sm transition flex items-center gap-3 bg-slate-900 border border-slate-800 hover:bg-slate-850">
+            <i class="fa-solid fa-comments text-amber-500 w-5"></i> <span>Müşteri Yorumları</span>
+          </button>
+          <button onclick="switchTab('sss')" class="tab-btn w-full text-left px-4 py-3 rounded-xl text-sm transition flex items-center gap-3 bg-slate-900 border border-slate-800 hover:bg-slate-850">
+            <i class="fa-solid fa-circle-question text-amber-500 w-5"></i> <span>Sıkça Sorulan Sorular</span>
+          </button>
+          <button onclick="switchTab('harita')" class="tab-btn w-full text-left px-4 py-3 rounded-xl text-sm transition flex items-center gap-3 bg-slate-900 border border-slate-800 hover:bg-slate-850">
+            <i class="fa-solid fa-map-location-dot text-amber-500 w-5"></i> <span>Harita & Alt Bilgi</span>
+          </button>
+        </div>
+
+        <!-- Sağ İçerik Alanı -->
+        <div class="lg:col-span-9 bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8">
+          
+          <!-- TAB 1: GENEL & İLETİŞİM -->
+          <div id="tab-genel" class="tab-content space-y-6">
+            <div class="border-b border-slate-800 pb-3 mb-4">
+              <h2 class="text-xl font-black text-amber-500">Genel Ayarlar ve İletişim Bilgileri</h2>
+              <p class="text-xs text-slate-400">Numaralar, logo ve adres tüm sayfadaki arama butonlarına otomatik bağlanır.</p>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs uppercase font-bold text-slate-400 mb-1">Telefon Numarası</label>
+                <input type="text" id="g_phone" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white">
+              </div>
+              <div>
+                <label class="block text-xs uppercase font-bold text-slate-400 mb-1">WhatsApp Numarası (Ülke koduyla örn: 90539...)</label>
+                <input type="text" id="g_wa" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white">
+              </div>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs uppercase font-bold text-slate-400 mb-1">Marka Başlığı</label>
+                <input type="text" id="g_logo" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white">
+              </div>
+              <div>
+                <label class="block text-xs uppercase font-bold text-slate-400 mb-1">Güven Rozeti / Durak Notu</label>
+                <input type="text" id="g_badge" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs uppercase font-bold text-slate-400 mb-1">Durak Açık Adresi</label>
+              <input type="text" id="g_address" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white">
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs uppercase font-bold text-slate-400 mb-1">Canlı Durum Bandı (Header)</label>
+                <input type="text" id="g_status" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white">
+              </div>
+              <div>
+                <label class="block text-xs uppercase font-bold text-slate-400 mb-1">Çalışma Saatleri Metni</label>
+                <input type="text" id="g_hours" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white">
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 2: HERO BÖLÜMÜ -->
+          <div id="tab-hero" class="tab-content hidden space-y-6">
+            <div class="border-b border-slate-800 pb-3 mb-4">
+              <h2 class="text-xl font-black text-amber-500">Giriş / Karşılama Alanı (Hero)</h2>
+              <p class="text-xs text-slate-400">Ziyaretçilerin siteye girdiğinde ilk gördüğü ana başlık ve butonlar.</p>
+            </div>
+
+            <div>
+              <label class="block text-xs uppercase font-bold text-slate-400 mb-1">Ana Başlık (HTML kullanabilirsiniz)</label>
+              <input type="text" id="h_title" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white">
+            </div>
+
+            <div>
+              <label class="block text-xs uppercase font-bold text-slate-400 mb-1">Alt Açıklama Paragrafı</label>
+              <textarea id="h_desc" rows="4" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white text-sm"></textarea>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs uppercase font-bold text-slate-400 mb-1">1. Buton Yazısı</label>
+                <input type="text" id="h_btn1" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white">
+              </div>
+              <div>
+                <label class="block text-xs uppercase font-bold text-slate-400 mb-1">2. Buton Yazısı (WhatsApp)</label>
+                <input type="text" id="h_btn2" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white">
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 3: HİZMETLER -->
+          <div id="tab-hizmetler" class="tab-content hidden space-y-6">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
+              <div>
+                <h2 class="text-xl font-black text-amber-500">Hizmetlerimiz Kartları</h2>
+                <p class="text-xs text-slate-400">İstediğiniz kadar yeni hizmet ekleyebilir veya mevcutları düzenleyebilirsiniz.</p>
+              </div>
+              <button onclick="addService()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-4 py-2 rounded-xl text-xs flex items-center gap-1">
+                <i class="fa-solid fa-plus"></i> Yeni Hizmet Ekle
+              </button>
+            </div>
+
+            <div id="services-list" class="space-y-4"></div>
+          </div>
+
+          <!-- TAB 4: ROTALAR & MESAFELER -->
+          <div id="tab-rotalar" class="tab-content hidden space-y-6">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
+              <div>
+                <h2 class="text-xl font-black text-amber-500">Güzergah & Mesafe Hesaplayıcı</h2>
+                <p class="text-xs text-slate-400">Açılır listede ve hızlı butonlarda çıkan rotaların mesafesi, süresi ve açıklaması.</p>
+              </div>
+              <button onclick="addRoute()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-4 py-2 rounded-xl text-xs flex items-center gap-1">
+                <i class="fa-solid fa-plus"></i> Yeni Rota Ekle
+              </button>
+            </div>
+
+            <div id="routes-list" class="space-y-4"></div>
+          </div>
+
+          <!-- TAB 5: NEDEN BİZ -->
+          <div id="tab-neden" class="tab-content hidden space-y-6">
+            <div class="border-b border-slate-800 pb-3 mb-4">
+              <h2 class="text-xl font-black text-amber-500">Neden Bizi Seçmelisiniz?</h2>
+              <p class="text-xs text-slate-400">Bu bölümdeki başlık, açıklama ve 4 ana özelliği düzenleyin.</p>
+            </div>
+
+            <div>
+              <label class="block text-xs uppercase font-bold text-slate-400 mb-1">Bölüm Başlığı</label>
+              <input type="text" id="n_title" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white">
+            </div>
+
+            <div>
+              <label class="block text-xs uppercase font-bold text-slate-400 mb-1">Bölüm Açıklaması</label>
+              <textarea id="n_desc" rows="3" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white text-sm"></textarea>
+            </div>
+
+            <div id="why-items-list" class="space-y-4 pt-4 border-t border-slate-800"></div>
+          </div>
+
+          <!-- TAB 6: YORUMLAR -->
+          <div id="tab-yorumlar" class="tab-content hidden space-y-6">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
+              <div>
+                <h2 class="text-xl font-black text-amber-500">Müşteri Yorumları</h2>
+                <p class="text-xs text-slate-400">Gerçek yolcu referanslarını ve değerlendirmeleri yönetin.</p>
+              </div>
+              <button onclick="addReview()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-4 py-2 rounded-xl text-xs flex items-center gap-1">
+                <i class="fa-solid fa-plus"></i> Yeni Yorum Ekle
+              </button>
+            </div>
+
+            <div id="reviews-list" class="space-y-4"></div>
+          </div>
+
+          <!-- TAB 7: SIKÇA SORULAN SORULAR -->
+          <div id="tab-sss" class="tab-content hidden space-y-6">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
+              <div>
+                <h2 class="text-xl font-black text-amber-500">Sıkça Sorulan Sorular (SSS)</h2>
+                <p class="text-xs text-slate-400">Müşterilerin en çok merak ettiği sorular ve detaylı cevapları.</p>
+              </div>
+              <button onclick="addFaq()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-4 py-2 rounded-xl text-xs flex items-center gap-1">
+                <i class="fa-solid fa-plus"></i> Yeni Soru Ekle
+              </button>
+            </div>
+
+            <div id="faqs-list" class="space-y-4"></div>
+          </div>
+
+          <!-- TAB 8: HARİTA & ALT BİLGİ -->
+          <div id="tab-harita" class="tab-content hidden space-y-6">
+            <div class="border-b border-slate-800 pb-3 mb-4">
+              <h2 class="text-xl font-black text-amber-500">Harita & Alt Bilgi (Footer)</h2>
+              <p class="text-xs text-slate-400">Google Harita embed kodu ve sitenin en altındaki telif yazısı.</p>
+            </div>
+
+            <div>
+              <label class="block text-xs uppercase font-bold text-slate-400 mb-1">Google Haritalar Iframe Kaynak Linki (src)</label>
+              <textarea id="f_mapsrc" rows="3" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white text-xs font-mono"></textarea>
+            </div>
+
+            <div>
+              <label class="block text-xs uppercase font-bold text-slate-400 mb-1">Alt Bilgi (Footer) Telif Metni</label>
+              <input type="text" id="f_copyright" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white">
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const PANEL_PASS = "muratyolcu7575";
+
+    const defaultData = {
+      phone: "0539 896 19 63",
+      wa: "905398961963",
+      logo: "ARDAHAN TAKSİ",
+      badge: "Bizim Taksi Güvencesiyle",
+      address: "Kaptanpaşa, Piyade Sk. No:5, 75000 Ardahan Merkez/Ardahan",
+      status: "Şu an Açık • 7/24 Kesintisiz Hizmet",
+      hours: "7 Gün 24 Saat Açık (Hafta sonu & Resmi Tatiller Dahil)",
+      heroTitle: "Ardahan'da <span class='text-amber-500'>7/24 Güvenli,</span> Hızlı ve Konforlu Ulaşım",
+      heroDesc: "Kaptanpaşa durağımızdan dilediğiniz her adrese tek tıkla kapınızdayız. Şehir içi taksi ihtiyaçlarınız, Kars Harakani Havalimanı transferleri, Çıldır Gölü gezileri ve tüm ilçe seyahatleriniz için konforlu aracımızla hizmetinizdeyiz.",
+      btnCall: "HEMEN TAKSİ ÇAĞIR",
+      btnWa: "WhatsApp Konum Gönder",
+      whyTitle: "Ardahan'da Güvenin ve Konforun Adresi",
+      whyDesc: "Yıllardır Ardahan halkına ve şehrimizi ziyaret eden misafirlerimize Bizim Taksi bünyesinde kesintisiz, saygılı ve dürüst taksi hizmeti sunuyoruz.",
+      whyItems: [
+        { title: "Zamanında & Dakik Ulaşım", desc: "Uçağınıza, otobüsünüze veya randevunuza asla geç kalmazsınız. Belirlenen saatte kapınızdayız." },
+        { title: "Bölgeyi Bilen Tecrübeli Şoförler", desc: "Kış koşullarında kar ve buz tecrübesine sahip, Ardahan ve çevre il yollarını avucunun içi gibi bilen sürücüler." },
+        { title: "Temiz, Konforlu & Klimalı Araçlar", desc: "Düzenli olarak iç-dış temizliği ve teknik bakımları yapılan sigara kokusuz ferah araçlar." },
+        { title: "Şeffaf & Makul Fiyat Politikası", desc: "Sürpriz ücret yok; resmi taksimetre tarifesi ve şehir dışı transferlerde önceden netleşen uygun fiyatlar." }
+      ],
+      services: [
+        { icon: "fa-taxi", title: "7/24 Şehir İçi Ulaşım", desc: "Ardahan merkez, mahalleler, kamu kurumları, devlet hastanesi, üniversite ve otogar noktalarına hızlı ulaşım." },
+        { icon: "fa-plane", title: "Havalimanı Transferi", desc: "Kars Harakani Havalimanı (KSY) veya Erzurum Havalimanı uçuşlarınıza zamanında yetişin. Kapıda karşılama imkanı." },
+        { icon: "fa-route", title: "İlçeler & Şehirler Arası", desc: "Göle, Çıldır, Posof, Hanak ve Damal ilçeleri ile çevre illere özel konforlu transferler." },
+        { icon: "fa-camera", title: "Turistik Geziler & Turlar", desc: "Donmuş Çıldır Gölü kızak keyfi, Şeytan Kalesi ve Yalnızçam Kayak Merkezi için özel şoförlü tur." },
+        { icon: "fa-train", title: "Doğu Ekspresi Karşılama", desc: "Kars Garı'na gelen misafirlerimiz için Ardahan'a özel karşılama ve güvenli transfer." },
+        { icon: "fa-box-open", title: "Acil Kurye & Paket", desc: "Acil ulaştırılması gereken evrak veya eşyalarınızı Ardahan merkez ve çevre ilçelere aynı gün teslim ediyoruz." }
+      ],
+      routes: [
+        { id: "kars_havalimani", name: "Kars Harakani Havalimanı (KSY)", km: "89 km", time: "~1 Saat 15 Dk", desc: "Kars Harakani Havalimanı direkt transferi" },
+        { id: "cildir_golu", name: "Çıldır Gölü (Geziler & Tur)", km: "45 km", time: "~40 Dk", desc: "Çıldır Gölü turu / Atlı Kızak / Balık Restoranları" },
+        { id: "gole", name: "Göle İlçesi", km: "42 km", time: "~35 Dk", desc: "Göle ilçe merkezi ve köylerine ulaşım" },
+        { id: "posof", name: "Posof / Türkgözü Sınırı", km: "78 km", time: "~1 Saat 10 Dk", desc: "Posof İlçe Merkezi ve Türkgözü Sınır Kapısı yönü" },
+        { id: "hanak", name: "Hanak İlçesi", km: "27 km", time: "~25 Dk", desc: "Hanak ilçe merkezi ve köyleri" },
+        { id: "damal", name: "Damal İlçesi", km: "44 km", time: "~35 Dk", desc: "Damal ilçe merkezi (Atatürk Silüeti alanı)" },
+        { id: "yalnizcam", name: "Yalnızçam Kayak Merkezi", km: "20 km", time: "~25 Dk", desc: "Yalnızçam Kayak Merkezi kış turizmi transferi" },
+        { id: "sehir_ici", name: "Ardahan Şehir İçi", km: "1-7 km", time: "5-10 Dk", desc: "Hastane, Otogar, Üniversite ve Merkez içi" }
+      ],
+      reviews: [
+        { author: "Murat Yılmaz", role: "Kars Havalimanı Yolcusu", text: "Kars Havalimanı'na sabah 06:00 uçağım için çağırdım. Gece kar yağışına rağmen tam vaktinde kapımdaydı. Çok dikkatli bir sürüşü vardı. Teşekkürler!", rating: 5 },
+        { author: "Elif Demir", role: "İstanbul / Turist", text: "Ailecek Çıldır Gölü gezisi için anlaştık. Hem bizi göle götürdü hem de sabırla bekleyip geri getirdi. Fiyat da gayet uygundu. Tavsiye ederim.", rating: 5 },
+        { author: "Serdar Kaya", role: "Ardahan Merkez", text: "Ardahan merkezde gece nöbetçi eczaneye gitmem gerekiyordu, 4 dakika sonra geldiler. Arabanın içi sıcacıktı ve tertemizdi. Güler yüzlü esnaf.", rating: 5 }
+      ],
+      faqs: [
+        { q: "Ardahan'da gece veya sabaha karşı taksi bulabilir miyim?", a: "Evet. 7 gün 24 saat kesintisiz nöbetçi aracımız hazırdır. Gecenin kaçı olursa olsun doğrudan bizi arayabilirsiniz." },
+        { q: "Kars Havalimanı transferi ne kadar sürer ve nasıl rezerve edilir?", a: "Ardahan merkez ile Kars Havalimanı arası yaklaşık 89 km olup 1 saat 15 dakika sürer. Uçuştan önce telefonla arayarak aracınızı ayırtabilirsiniz." },
+        { q: "Araçlarınızda kredi kartı veya temassız ödeme geçerli mi?", a: "Evet. Nakit ödemenin yanı sıra kredi kartı, banka kartı ve mobil IBAN ile güvenle ödeme yapabilirsiniz." },
+        { q: "Çıldır Gölü turu için bekleme yapıyor musunuz?", a: "Elbette. Çıldır Gölü ve çevresindeki gezilerinizde sizi götürüp dilediğiniz kadar bekliyor ve geri getiriyoruz." }
+      ],
+      mapSrc: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3008.2046187740176!2d42.70014767664653!3d41.11915471257404!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x406795fbb0e2e541%3A0x63351310fa0963f9!2sKaptanpa%C5%9Fa%2C%20Piyade%20Sk.%20No%3A5%2C%2075000%20Ardahan%20Merkez%2FArdahan!5e0!3m2!1str!2str!4v1700000000000!5m2!1str!2str",
+      copyright: "© 2026 ardahantaksi.com - Ardahan Taksi Hizmeti. Tüm Hakları Saklıdır."
+    };
+
+    let siteData = {};
+
+    function login() {
+      if (document.getElementById("passInput").value === PANEL_PASS) {
+        document.getElementById("authSection").classList.add("hidden");
+        document.getElementById("panelSection").classList.remove("hidden");
+        loadDataToForm();
+      } else {
+        alert("Hatalı şifre!");
+      }
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
+      event.currentTarget.classList.add("active");
+      document.querySelectorAll(".tab-content").forEach(c => c.classList.add("hidden"));
+      document.getElementById("tab-" + tabId).classList.remove("hidden");
+    }
+
+    function loadDataToForm() {
+      const saved = localStorage.getItem("ardahan_taxi_full_config");
+      siteData = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(defaultData));
+
+      // Genel
+      document.getElementById("g_phone").value = siteData.phone;
+      document.getElementById("g_wa").value = siteData.wa;
+      document.getElementById("g_logo").value = siteData.logo;
+      document.getElementById("g_badge").value = siteData.badge;
+      document.getElementById("g_address").value = siteData.address;
+      document.getElementById("g_status").value = siteData.status;
+      document.getElementById("g_hours").value = siteData.hours;
+
+      // Hero
+      document.getElementById("h_title").value = siteData.heroTitle;
+      document.getElementById("h_desc").value = siteData.heroDesc;
+      document.getElementById("h_btn1").value = siteData.btnCall;
+      document.getElementById("h_btn2").value = siteData.btnWa;
+
+      // Neden Biz
+      document.getElementById("n_title").value = siteData.whyTitle;
+      document.getElementById("n_desc").value = siteData.whyDesc;
+      renderWhyItems();
+
+      // Hizmetler
+      renderServices();
+
+      // Rotalar
+      renderRoutes();
+
+      // Yorumlar
+      renderReviews();
+
+      // SSS
+      renderFaqs();
+
+      // Harita & Footer
+      document.getElementById("f_mapsrc").value = siteData.mapSrc;
+      document.getElementById("f_copyright").value = siteData.copyright;
+    }
+
+    // Listeleri render fonksiyonları
+    function renderServices() {
+      const el = document.getElementById("services-list");
+      el.innerHTML = "";
+      siteData.services.forEach((s, i) => {
+        el.innerHTML += `
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex flex-col sm:flex-row gap-4 items-start justify-between">
+            <div class="space-y-2 flex-1 w-full">
+              <div class="flex gap-2">
+                <input type="text" value="${s.title}" onchange="siteData.services[${i}].title=this.value" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white font-bold text-sm">
+                <input type="text" value="${s.icon}" onchange="siteData.services[${i}].icon=this.value" class="w-32 bg-slate-900 border border-slate-700 rounded-lg p-2 text-amber-500 text-xs font-mono" placeholder="fa-taxi">
+              </div>
+              <textarea onchange="siteData.services[${i}].desc=this.value" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-300 text-xs">${s.desc}</textarea>
+            </div>
+            <button onclick="siteData.services.splice(${i},1); renderServices()" class="text-rose-400 hover:text-rose-300 p-2 text-sm"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        `;
+      });
+    }
+
+    function addService() {
+      siteData.services.push({ icon: "fa-car", title: "Yeni Hizmet Başlığı", desc: "Hizmet detayını buraya yazın." });
+      renderServices();
+    }
+
+    function renderRoutes() {
+      const el = document.getElementById("routes-list");
+      el.innerHTML = "";
+      siteData.routes.forEach((r, i) => {
+        el.innerHTML += `
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex flex-col sm:flex-row gap-4 items-start justify-between">
+            <div class="space-y-2 flex-1 w-full">
+              <div class="grid sm:grid-cols-3 gap-2">
+                <input type="text" value="${r.name}" onchange="siteData.routes[${i}].name=this.value" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white font-bold text-sm" placeholder="Rota Adı">
+                <input type="text" value="${r.km}" onchange="siteData.routes[${i}].km=this.value" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-amber-500 font-bold text-sm" placeholder="Mesafe (örn: 89 km)">
+                <input type="text" value="${r.time}" onchange="siteData.routes[${i}].time=this.value" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-300 text-sm" placeholder="Süre (örn: ~1 Saat)">
+              </div>
+              <input type="text" value="${r.desc}" onchange="siteData.routes[${i}].desc=this.value" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-400 text-xs" placeholder="Açıklama">
+            </div>
+            <button onclick="siteData.routes.splice(${i},1); renderRoutes()" class="text-rose-400 hover:text-rose-300 p-2 text-sm"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        `;
+      });
+    }
+
+    function addRoute() {
+      siteData.routes.push({ id: "rota_" + Date.now(), name: "Yeni Rota Adı", km: "00 km", time: "~00 Dk", desc: "Rota detay açıklaması" });
+      renderRoutes();
+    }
+
+    function renderWhyItems() {
+      const el = document.getElementById("why-items-list");
+      el.innerHTML = "";
+      siteData.whyItems.forEach((w, i) => {
+        el.innerHTML += `
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+            <input type="text" value="${w.title}" onchange="siteData.whyItems[${i}].title=this.value" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white font-bold text-sm">
+            <textarea onchange="siteData.whyItems[${i}].desc=this.value" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-300 text-xs">${w.desc}</textarea>
+          </div>
+        `;
+      });
+    }
+
+    function renderReviews() {
+      const el = document.getElementById("reviews-list");
+      el.innerHTML = "";
+      siteData.reviews.forEach((rv, i) => {
+        el.innerHTML += `
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex flex-col sm:flex-row gap-4 items-start justify-between">
+            <div class="space-y-2 flex-1 w-full">
+              <div class="grid sm:grid-cols-2 gap-2">
+                <input type="text" value="${rv.author}" onchange="siteData.reviews[${i}].author=this.value" class="bg-slate-900 border border-slate-700 rounded-lg p-2 text-white font-bold text-sm" placeholder="Müşteri Adı">
+                <input type="text" value="${rv.role}" onchange="siteData.reviews[${i}].role=this.value" class="bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-400 text-xs" placeholder="Ünvan / Şehir">
+              </div>
+              <textarea onchange="siteData.reviews[${i}].text=this.value" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-300 text-xs">${rv.text}</textarea>
+            </div>
+            <button onclick="siteData.reviews.splice(${i},1); renderReviews()" class="text-rose-400 hover:text-rose-300 p-2 text-sm"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        `;
+      });
+    }
+
+    function addReview() {
+      siteData.reviews.push({ author: "Müşteri Adı Soyadı", role: "Ardahan / Yolcu", text: "Taksi zamanında geldi ve çok memnun kaldık.", rating: 5 });
+      renderReviews();
+    }
+
+    function renderFaqs() {
+      const el = document.getElementById("faqs-list");
+      el.innerHTML = "";
+      siteData.faqs.forEach((f, i) => {
+        el.innerHTML += `
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex flex-col sm:flex-row gap-4 items-start justify-between">
+            <div class="space-y-2 flex-1 w-full">
+              <input type="text" value="${f.q}" onchange="siteData.faqs[${i}].q=this.value" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white font-bold text-sm" placeholder="Soru">
+              <textarea onchange="siteData.faqs[${i}].a=this.value" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-300 text-xs" placeholder="Cevap">${f.a}</textarea>
+            </div>
+            <button onclick="siteData.faqs.splice(${i},1); renderFaqs()" class="text-rose-400 hover:text-rose-300 p-2 text-sm"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        `;
+      });
+    }
+
+    function addFaq() {
+      siteData.faqs.push({ q: "Yeni bir soru başlığı?", a: "Bu sorunun açıklayıcı cevabı." });
+      renderFaqs();
+    }
+
+    function saveAll() {
+      // Formdaki inputlardan oku
+      siteData.phone = document.getElementById("g_phone").value;
+      siteData.wa = document.getElementById("g_wa").value;
+      siteData.logo = document.getElementById("g_logo").value;
+      siteData.badge = document.getElementById("g_badge").value;
+      siteData.address = document.getElementById("g_address").value;
+      siteData.status = document.getElementById("g_status").value;
+      siteData.hours = document.getElementById("g_hours").value;
+
+      siteData.heroTitle = document.getElementById("h_title").value;
+      siteData.heroDesc = document.getElementById("h_desc").value;
+      siteData.btnCall = document.getElementById("h_btn1").value;
+      siteData.btnWa = document.getElementById("h_btn2").value;
+
+      siteData.whyTitle = document.getElementById("n_title").value;
+      siteData.whyDesc = document.getElementById("n_desc").value;
+
+      siteData.mapSrc = document.getElementById("f_mapsrc").value;
+      siteData.copyright = document.getElementById("f_copyright").value;
+
+      localStorage.setItem("ardahan_taxi_full_config", JSON.stringify(siteData));
+
+      // Toast bildirimini göster
+      const toast = document.getElementById("saveToast");
+      toast.classList.remove("hidden");
+      setTimeout(() => toast.classList.add("hidden"), 3500);
+    }
+  </script>
+</body>
+</html>
